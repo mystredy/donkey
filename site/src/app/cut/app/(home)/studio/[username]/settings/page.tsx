@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { OAUTH_CAPABLE_PLATFORMS, PUBLISHABLE_PLATFORMS } from "@/lib/marketplace/oauth-providers";
@@ -65,6 +66,28 @@ const PLATFORM_ICONS: Record<string, LucideIcon> = {
 };
 
 const LINKED_ACCOUNT_PLATFORMS = ["facebook", "instagram", "x", "tiktok", "youtube", "threads", "snapchat"];
+
+// Content categories, matching the taxonomy platforms like YouTube use for a
+// channel's primary topic. "Creator" stays first as the generic default —
+// every studio is created with it, and not every studio fits a niche.
+const STUDIO_TYPES = [
+  "Creator",
+  "Music",
+  "Gaming",
+  "Education",
+  "Entertainment",
+  "Comedy",
+  "News & Politics",
+  "Sports",
+  "Film & Animation",
+  "Science & Technology",
+  "Howto & Style",
+  "Travel & Events",
+  "Autos & Vehicles",
+  "Pets & Animals",
+  "People & Blogs",
+  "Nonprofits & Activism",
+];
 
 type Section = "setup" | "access" | "history" | "linked" | "repurpose";
 
@@ -138,6 +161,7 @@ function SetupSection({
   const [name, setName] = useState(studio.name);
   const [username, setUsername] = useState(studio.username);
   const [bio, setBio] = useState(studio.bio ?? "");
+  const [spaceType, setSpaceType] = useState(studio.spaceType);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteCode, setDeleteCode] = useState("");
 
@@ -159,12 +183,16 @@ function SetupSection({
   };
 
   const dirty =
-    name.trim() !== studio.name || username.trim() !== studio.username || bio.trim() !== (studio.bio ?? "");
+    name.trim() !== studio.name ||
+    username.trim() !== studio.username ||
+    bio.trim() !== (studio.bio ?? "") ||
+    spaceType !== studio.spaceType;
 
   const save = () => {
     update.mutate({
       bio: bio.trim() || null,
       name: name.trim(),
+      spaceType,
       username: username.trim(),
     });
   };
@@ -185,7 +213,18 @@ function SetupSection({
       </div>
       <div className="space-y-1.5">
         <Label className="text-xs">Studio type</Label>
-        <p className="text-sm">{studio.spaceType}</p>
+        <Select value={spaceType} onValueChange={(v) => v && setSpaceType(v)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {STUDIO_TYPES.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex items-center justify-between rounded-xl border p-3">
