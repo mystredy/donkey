@@ -251,7 +251,7 @@ export function NavUser() {
                 )}
               >
                 <div className="ml-2 min-h-0 space-y-px border-l pl-2">
-                  {studios.data!.spaces.map((studio) => (
+                  {studios.data!.spaces.slice(1).map((studio) => (
                     <DropdownMenuItem
                       key={studio.id}
                       onClick={() => router.push(`${base}/studio/${studio.username}`)}
