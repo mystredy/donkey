@@ -45,6 +45,7 @@ import { UserAvatar } from "@/cut/components/UserAvatar";
 import { DEFAULT_CREDIT_RATE, formatCredits } from "@/lib/credits/format-credits";
 import { useCutBase } from "@/cut/lib/nav";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 import { useAccountProfile, visibleName } from "@/queries/accountProfile";
 import { useAccount, useCreditBalance } from "@/queries/credits";
 import { usePublicSiteSettings } from "@/queries/site";
@@ -228,10 +229,22 @@ export function NavUser() {
                   initialClassName="text-[10px]"
                 />
                 <span className="min-w-0 truncate">{studios.data!.spaces[0].name}</span>
-                <ChevronsUpDown className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
+                <ChevronsUpDown
+                  className={cn(
+                    "ml-auto size-3.5 shrink-0 text-muted-foreground transition-transform duration-200",
+                    studiosExpanded && "rotate-180"
+                  )}
+                />
               </DropdownMenuItem>
-              {studiosExpanded && (
-                <div className="ml-2 space-y-px border-l pl-2">
+              <div
+                aria-hidden={!studiosExpanded}
+                inert={!studiosExpanded}
+                className={cn(
+                  "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out",
+                  studiosExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                )}
+              >
+                <div className="ml-2 min-h-0 space-y-px border-l pl-2">
                   {studios.data!.spaces.map((studio) => (
                     <DropdownMenuItem
                       key={studio.id}
@@ -250,7 +263,7 @@ export function NavUser() {
                     <Plus /> New studio
                   </DropdownMenuItem>
                 </div>
-              )}
+              </div>
             </>
           )}
           <DropdownMenuItem onClick={() => router.push(`${base}/settings`)}>
