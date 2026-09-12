@@ -1,8 +1,10 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
+import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  ArrowLeft,
   AtSign,
   Camera,
   Film,
@@ -24,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { useCutBase } from "@/cut/lib/nav";
 import { OAUTH_CAPABLE_PLATFORMS, PUBLISHABLE_PLATFORMS } from "@/lib/marketplace/oauth-providers";
 import { SOCIAL_APP_SEED } from "@/lib/marketplace/social-apps-seed";
 import { cn } from "@/lib/utils";
@@ -101,6 +104,7 @@ const SECTIONS: { key: Section; label: string }[] = [
 
 export default function StudioSettingsPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
+  const base = useCutBase();
   const { data, isLoading } = useStudioByUsername(username);
   const [section, setSection] = useState<Section>("setup");
 
@@ -117,7 +121,14 @@ export default function StudioSettingsPage({ params }: { params: Promise<{ usern
 
   return (
     <div className="mx-auto max-w-2xl px-6 pb-24">
-      <h1 className="pt-4 text-lg font-semibold tracking-tight">{studio.name} — Settings</h1>
+      <Link
+        href={`${base}/studio/${studio.username}`}
+        className="mt-4 flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" />
+        Back
+      </Link>
+      <h1 className="mt-2 text-lg font-semibold tracking-tight">{studio.name} — Settings</h1>
 
       <div className="mt-4 flex flex-wrap gap-1 border-b border-border">
         {SECTIONS.map((s) => (
