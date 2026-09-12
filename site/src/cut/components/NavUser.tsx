@@ -89,6 +89,7 @@ export function NavUser() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [creatorApplicationOpen, setCreatorApplicationOpen] = useState(false);
   const [creatingStudio, setCreatingStudio] = useState(false);
+  const [studiosExpanded, setStudiosExpanded] = useState(false);
   const { data: session } = authClient.useSession();
   // Started unconditionally rather than waiting on the session hook to
   // resolve first — /api/account/profile reads the session cookie itself,
@@ -215,8 +216,11 @@ export function NavUser() {
               <Video /> New studio <Plus className="ml-auto size-3.5 text-muted-foreground" />
             </DropdownMenuItem>
           ) : (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger icon={ChevronsUpDown}>
+            <>
+              <DropdownMenuItem
+                closeOnClick={false}
+                onClick={() => setStudiosExpanded((v) => !v)}
+              >
                 <UserAvatar
                   name={studios.data!.spaces[0].name}
                   image={null}
@@ -224,28 +228,30 @@ export function NavUser() {
                   initialClassName="text-[10px]"
                 />
                 <span className="min-w-0 truncate">{studios.data!.spaces[0].name}</span>
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                {studios.data!.spaces.map((studio) => (
-                  <DropdownMenuItem
-                    key={studio.id}
-                    onClick={() => router.push(`${base}/studio/${studio.username}`)}
-                  >
-                    <UserAvatar
-                      name={studio.name}
-                      image={null}
-                      className="size-5"
-                      initialClassName="text-[10px]"
-                    />
-                    <span className="min-w-0 truncate">{studio.name}</span>
+                <ChevronsUpDown className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
+              </DropdownMenuItem>
+              {studiosExpanded && (
+                <div className="ml-2 space-y-px border-l pl-2">
+                  {studios.data!.spaces.map((studio) => (
+                    <DropdownMenuItem
+                      key={studio.id}
+                      onClick={() => router.push(`${base}/studio/${studio.username}`)}
+                    >
+                      <UserAvatar
+                        name={studio.name}
+                        image={null}
+                        className="size-5"
+                        initialClassName="text-[10px]"
+                      />
+                      <span className="min-w-0 truncate">{studio.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuItem onClick={() => setCreatingStudio(true)}>
+                    <Plus /> New studio
                   </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setCreatingStudio(true)}>
-                  <Plus /> New studio
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+                </div>
+              )}
+            </>
           )}
           <DropdownMenuItem onClick={() => router.push(`${base}/settings`)}>
             <CreditCard /> Billing
