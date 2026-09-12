@@ -219,8 +219,7 @@ export function NavUser() {
           ) : (
             <>
               <DropdownMenuItem
-                closeOnClick={false}
-                onClick={() => setStudiosExpanded((v) => !v)}
+                onClick={() => router.push(`${base}/studio/${studios.data!.spaces[0].username}`)}
               >
                 <UserAvatar
                   name={studios.data!.spaces[0].name}
@@ -229,12 +228,19 @@ export function NavUser() {
                   initialClassName="text-[10px]"
                 />
                 <span className="min-w-0 truncate">{studios.data!.spaces[0].name}</span>
-                <ChevronsUpDown
-                  className={cn(
-                    "ml-auto size-3.5 shrink-0 text-muted-foreground transition-transform duration-200",
-                    studiosExpanded && "rotate-180"
-                  )}
-                />
+                <button
+                  type="button"
+                  aria-label={studiosExpanded ? "Collapse studios" : "Switch studios"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStudiosExpanded((v) => !v);
+                  }}
+                  className="ml-auto shrink-0 rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <ChevronsUpDown
+                    className={cn("size-3.5 transition-transform duration-200", studiosExpanded && "rotate-180")}
+                  />
+                </button>
               </DropdownMenuItem>
               <div
                 aria-hidden={!studiosExpanded}
