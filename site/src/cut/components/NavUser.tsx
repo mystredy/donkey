@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChartColumn,
+  ChevronsUpDown,
   Clapperboard,
   CreditCard,
   EllipsisVertical,
@@ -215,7 +216,7 @@ export function NavUser() {
             </DropdownMenuItem>
           ) : (
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger icon={ChevronsUpDown}>
                 <UserAvatar
                   name={studios.data!.spaces[0].name}
                   image={null}
