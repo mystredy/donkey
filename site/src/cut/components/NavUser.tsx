@@ -191,7 +191,11 @@ export function NavUser() {
                 AI credits
               </span>
               <span className="font-mono text-xs font-semibold tabular-nums">
-                {credits.isLoading ? "…" : formatCredits(credits.data?.balance ?? "0", creditRate)}
+                {credits.isLoading ? (
+                  <Skeleton className="h-3.5 w-14" />
+                ) : (
+                  formatCredits(credits.data?.balance ?? "0", creditRate)
+                )}
               </span>
             </div>
             <Button
