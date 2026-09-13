@@ -11,6 +11,7 @@ import { validationErrorResponse } from "@/lib/inference/responses";
 import { prisma } from "@/lib/prisma";
 import { getStudioMembership } from "@/lib/studio/access";
 import { createInviteChallenge, generateInviteCode } from "@/lib/studio/invite-verification";
+import { escapeHtml, hasTelegramLinked, sendTelegramCode } from "@/lib/telegram/send-code";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +24,10 @@ const bodySchema = z
   .strict();
 
 // Managers only. Step 1 of inviting someone: emails a one-time code to the
-// REQUESTING manager's own address. The actual invite (POST /invites) only
-// sends once that code comes back — see lib/studio/invite-verification.ts.
+// REQUESTING manager's own address, and — when Telegram is linked — a
+// second, independent code there too, both required. The actual invite
+// (POST /invites) only sends once both come back — see
+// lib/studio/invite-verification.ts.
 export const POST = withDepCutAuth(async (request: DepCutAuthenticatedRequest, context: RouteContext) => {
   const { id } = await context.params;
   const membership = await getStudioMembership(request.depcut.userId, id);
@@ -64,11 +67,23 @@ export const POST = withDepCutAuth(async (request: DepCutAuthenticatedRequest, c
     );
   }
 
+  let telegramCode: string | null = null;
+  if (await hasTelegramLinked(request.depcut.userId)) {
+    const candidate = generateInviteCode();
+    const sent = await sendTelegramCode({
+      code: candidate,
+      userId: request.depcut.userId,
+      warning: `⚠️ Someone asked to invite ${escapeHtml(parsed.data.email)} to manage "${escapeHtml(studio.name)}" on DepCut.`,
+    });
+    if (sent) telegramCode = candidate;
+  }
+
   const challenge = createInviteChallenge({
     code,
     email: parsed.data.email,
     requesterId: request.depcut.userId,
     studioId: id,
+    telegramCode,
   });
-  return NextResponse.json({ challenge, sentTo: requester.email });
+  return NextResponse.json({ challenge, sentTo: requester.email, telegramRequired: telegramCode !== null });
 });

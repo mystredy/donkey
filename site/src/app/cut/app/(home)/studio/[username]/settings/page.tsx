@@ -199,20 +199,27 @@ function SetupSection({
   const [spaceType, setSpaceType] = useState(studio.spaceType);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteCode, setDeleteCode] = useState("");
+  const [deleteTelegramCode, setDeleteTelegramCode] = useState("");
 
   const startDelete = () => {
     setConfirmingDelete(true);
     setDeleteCode("");
+    setDeleteTelegramCode("");
     requestDeleteCode.mutate();
   };
   const cancelDelete = () => {
     setConfirmingDelete(false);
     setDeleteCode("");
+    setDeleteTelegramCode("");
   };
   const confirmDelete = () => {
     if (!requestDeleteCode.data) return;
     del.mutate(
-      { challenge: requestDeleteCode.data.challenge, code: deleteCode },
+      {
+        challenge: requestDeleteCode.data.challenge,
+        code: deleteCode,
+        telegramCode: requestDeleteCode.data.telegramRequired ? deleteTelegramCode : undefined,
+      },
       { onSuccess: () => (window.location.href = "/app/studio") },
     );
   };
@@ -350,6 +357,19 @@ function SetupSection({
                   placeholder="000000"
                   value={deleteCode}
                 />
+                {requestDeleteCode.data?.telegramRequired && (
+                  <>
+                    <Label className="text-xs">Enter the code sent to your linked Telegram.</Label>
+                    <Input
+                      className="w-28 tracking-widest"
+                      inputMode="numeric"
+                      maxLength={6}
+                      onChange={(e) => setDeleteTelegramCode(e.target.value.replace(/\D/g, ""))}
+                      placeholder="000000"
+                      value={deleteTelegramCode}
+                    />
+                  </>
+                )}
               </>
             )}
             {del.isError && (
@@ -364,7 +384,12 @@ function SetupSection({
               <Button
                 variant="destructive"
                 size="sm"
-                disabled={!requestDeleteCode.data || deleteCode.length !== 6 || del.isPending}
+                disabled={
+                  !requestDeleteCode.data ||
+                  deleteCode.length !== 6 ||
+                  (requestDeleteCode.data.telegramRequired && deleteTelegramCode.length !== 6) ||
+                  del.isPending
+                }
                 onClick={confirmDelete}
               >
                 {del.isPending ? <Loader2 className="size-3.5 animate-spin" data-icon="inline-start" /> : null}
@@ -502,6 +527,7 @@ function InviteManagerDialog({
   const sendInvite = useSendStudioInvite(studioId);
   const [challenge, setChallenge] = useState<string | null>(null);
   const [code, setCode] = useState("");
+  const [telegramCode, setTelegramCode] = useState("");
 
   // Resets challenge/code the moment the target email changes (including to
   // null on close), in render rather than an effect — React's documented
@@ -511,6 +537,7 @@ function InviteManagerDialog({
     setTrackedEmail(email);
     setChallenge(null);
     setCode("");
+    setTelegramCode("");
   }
 
   useEffect(() => {
@@ -524,13 +551,14 @@ function InviteManagerDialog({
   const resend = () => {
     if (!email) return;
     setCode("");
+    setTelegramCode("");
     requestCode.mutate(email, { onSuccess: (result) => setChallenge(result.challenge) });
   };
 
   const confirm = () => {
     if (!email || !challenge) return;
     sendInvite.mutate(
-      { challenge, code, email },
+      { challenge, code, email, telegramCode: requestCode.data?.telegramRequired ? telegramCode : undefined },
       {
         onSuccess: () => {
           onSent();
@@ -580,6 +608,20 @@ function InviteManagerDialog({
                 value={code}
               />
             </div>
+            {requestCode.data?.telegramRequired && (
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-telegram-code">Code sent to your Telegram</Label>
+                <Input
+                  className="w-28 tracking-widest"
+                  id="invite-telegram-code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  onChange={(e) => setTelegramCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder="000000"
+                  value={telegramCode}
+                />
+              </div>
+            )}
             {sendInvite.isError && (
               <p className="text-sm text-destructive">
                 {sendInvite.error instanceof ApiError ? sendInvite.error.message : "Couldn't send the invite."}
@@ -599,7 +641,15 @@ function InviteManagerDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={!challenge || code.length !== 6 || sendInvite.isPending} onClick={confirm}>
+          <Button
+            disabled={
+              !challenge ||
+              code.length !== 6 ||
+              (requestCode.data?.telegramRequired && telegramCode.length !== 6) ||
+              sendInvite.isPending
+            }
+            onClick={confirm}
+          >
             {sendInvite.isPending ? <Loader2 className="size-3.5 animate-spin" data-icon="inline-start" /> : null}
             Send invite
           </Button>

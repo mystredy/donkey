@@ -45,6 +45,7 @@ const inviteSchema = z
     email: z.string().trim().toLowerCase().email(),
     challenge: z.string().min(1),
     code: z.string().length(6),
+    telegramCode: z.string().length(6).optional(),
   })
   .strict();
 
@@ -67,6 +68,7 @@ export const POST = withDepCutAuth(async (request: DepCutAuthenticatedRequest, c
     email: parsed.data.email,
     requesterId: request.depcut.userId,
     studioId: id,
+    telegramCode: parsed.data.telegramCode,
   });
   if (!verified) {
     return NextResponse.json(

@@ -161,21 +161,22 @@ export function useRemoveStudioBackground(id: string) {
 export function useRequestStudioDeleteCode(id: string) {
   return useMutation({
     mutationFn: () =>
-      apiFetch<{ challenge: string; sentTo: string }>(`/api/studios/${id}/request-delete-code`, {
-        method: "POST",
-      }),
+      apiFetch<{ challenge: string; sentTo: string; telegramRequired: boolean }>(
+        `/api/studios/${id}/request-delete-code`,
+        { method: "POST" },
+      ),
   });
 }
 
 // Requires the challenge + code from useRequestStudioDeleteCode, proving the
-// owner approved this exact deletion from their own inbox (and Telegram, if
-// linked).
+// owner approved this exact deletion from their own inbox — and, when
+// telegramRequired came back true, the second code Telegram also got.
 export function useDeleteStudio(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ challenge, code }: { challenge: string; code: string }) =>
+    mutationFn: ({ challenge, code, telegramCode }: { challenge: string; code: string; telegramCode?: string }) =>
       apiFetch<{ ok: boolean }>(`/api/studios/${id}`, {
-        body: JSON.stringify({ challenge, code }),
+        body: JSON.stringify({ challenge, code, telegramCode }),
         method: "DELETE",
       }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: studiosQueryKey }),
@@ -224,22 +225,33 @@ export function useStudioInvites(id: string) {
 export function useRequestStudioInviteCode(id: string) {
   return useMutation({
     mutationFn: (email: string) =>
-      apiFetch<{ challenge: string; sentTo: string }>(`/api/studios/${id}/invites/request-code`, {
-        body: JSON.stringify({ email }),
-        method: "POST",
-      }),
+      apiFetch<{ challenge: string; sentTo: string; telegramRequired: boolean }>(
+        `/api/studios/${id}/invites/request-code`,
+        { body: JSON.stringify({ email }), method: "POST" },
+      ),
   });
 }
 
 // Step 2: requires the challenge + code from useRequestStudioInviteCode,
 // proving the requesting manager approved this exact invite from their own
-// inbox, before the invite email goes out to the invitee.
+// inbox — and, when telegramRequired came back true, the second code
+// Telegram also got — before the invite email goes out to the invitee.
 export function useSendStudioInvite(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ email, challenge, code }: { email: string; challenge: string; code: string }) =>
+    mutationFn: ({
+      email,
+      challenge,
+      code,
+      telegramCode,
+    }: {
+      email: string;
+      challenge: string;
+      code: string;
+      telegramCode?: string;
+    }) =>
       apiFetch<{ invite: StudioInvite }>(`/api/studios/${id}/invites`, {
-        body: JSON.stringify({ challenge, code, email }),
+        body: JSON.stringify({ challenge, code, email, telegramCode }),
         method: "POST",
       }),
     onSuccess: () => {

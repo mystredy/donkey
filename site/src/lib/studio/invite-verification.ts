@@ -3,15 +3,18 @@ import { createHash, createHmac, randomInt, timingSafeEqual } from "node:crypto"
 // Gates a studio manager invite behind a one-time code emailed to the
 // INVITING manager's own address — proof a human with inbox access approved
 // this specific invite, not just that the browser session is authenticated,
-// before the actual invite email goes out to the invitee. Stateless like
-// lib/admin/action-verification.ts: the code's hash and the invite it
-// authorizes travel inside the signed challenge itself, so there's no DB row
-// to add or expire.
+// before the actual invite email goes out to the invitee. When the inviting
+// manager also has Telegram linked, a SECOND, independent code goes there
+// and both are required — a compromised inbox alone can no longer invite a
+// manager. Stateless like lib/admin/action-verification.ts: the code hashes
+// and the invite they authorize travel inside the signed challenge itself,
+// so there's no DB row to add or expire.
 type ChallengePayload = {
   requesterId: string;
   studioId: string;
   email: string;
   codeHash: string;
+  telegramCodeHash: string | null;
   iat: number;
 };
 
@@ -50,6 +53,7 @@ export function createInviteChallenge(params: {
   studioId: string;
   email: string;
   code: string;
+  telegramCode: string | null;
 }): string {
   const payload: ChallengePayload = {
     codeHash: hashCode(params.code),
@@ -57,6 +61,7 @@ export function createInviteChallenge(params: {
     iat: Date.now(),
     requesterId: params.requesterId,
     studioId: params.studioId,
+    telegramCodeHash: params.telegramCode ? hashCode(params.telegramCode) : null,
   };
   const body = base64url(JSON.stringify(payload));
   return `${body}.${sign(body)}`;
@@ -65,6 +70,7 @@ export function createInviteChallenge(params: {
 export function verifyInviteChallenge(params: {
   challenge: string;
   code: string;
+  telegramCode?: string;
   requesterId: string;
   studioId: string;
   email: string;
@@ -88,6 +94,14 @@ export function verifyInviteChallenge(params: {
   ) {
     return false;
   }
+  if (!timingSafeStringsEqual(hashCode(params.code), payload.codeHash)) return false;
 
-  return timingSafeStringsEqual(hashCode(params.code), payload.codeHash);
+  // A Telegram code was issued alongside the email one — both are
+  // required, not either/or.
+  if (payload.telegramCodeHash) {
+    if (!params.telegramCode) return false;
+    if (!timingSafeStringsEqual(hashCode(params.telegramCode), payload.telegramCodeHash)) return false;
+  }
+
+  return true;
 }

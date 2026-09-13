@@ -8,16 +8,17 @@ import {
 import { sendStudioDeleteCode } from "@/lib/email/send-studio-delete-code";
 import { prisma } from "@/lib/prisma";
 import { createDeleteChallenge, generateDeleteCode } from "@/lib/studio/delete-verification";
-import { notifyStudioDeleteCode } from "@/lib/studio/notify-delete-code";
+import { escapeHtml, hasTelegramLinked, sendTelegramCode } from "@/lib/telegram/send-code";
 
 export const dynamic = "force-dynamic";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
 // Owner only. Step 1 of deleting a studio: sends a one-time code to the
-// owner's own email (and Telegram, if linked). The actual delete
-// (DELETE /api/studios/[id]) only proceeds once that code comes back — see
-// lib/studio/delete-verification.ts.
+// owner's own email, and — when Telegram is linked — a second, independent
+// code there too, both required to actually delete (see
+// lib/studio/delete-verification.ts). The actual delete
+// (DELETE /api/studios/[id]) only proceeds once both come back.
 export const POST = withDepCutAuth(async (request: DepCutAuthenticatedRequest, context: RouteContext) => {
   const { id } = await context.params;
   const [studio, owner] = await Promise.all([
@@ -41,8 +42,33 @@ export const POST = withDepCutAuth(async (request: DepCutAuthenticatedRequest, c
       { status: 502 },
     );
   }
-  await notifyStudioDeleteCode({ code, studioName: studio.name, userId: request.depcut.userId });
 
-  const challenge = createDeleteChallenge({ code, requesterId: request.depcut.userId, studioId: id });
-  return NextResponse.json({ challenge, sentTo: owner.email });
+  let telegramCode: string | null = null;
+  if (await hasTelegramLinked(request.depcut.userId)) {
+    const candidate = generateDeleteCode();
+    const sent = await sendTelegramCode({
+      code: candidate,
+      userId: request.depcut.userId,
+      warning: `⚠️ Someone asked to delete "${escapeHtml(studio.name)}" on DepCut.`,
+    });
+    if (sent) telegramCode = candidate;
+  }
+
+  await prisma.notification.create({
+    data: {
+      body: telegramCode
+        ? "Codes sent to your email and Telegram — both are needed to confirm."
+        : "Code sent to your email — expires in 10 minutes.",
+      title: `Confirm deleting "${studio.name}"`,
+      userId: request.depcut.userId,
+    },
+  });
+
+  const challenge = createDeleteChallenge({
+    code,
+    requesterId: request.depcut.userId,
+    studioId: id,
+    telegramCode,
+  });
+  return NextResponse.json({ challenge, sentTo: owner.email, telegramRequired: telegramCode !== null });
 });

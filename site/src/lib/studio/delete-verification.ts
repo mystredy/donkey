@@ -1,15 +1,18 @@
 import { createHash, createHmac, randomInt, timingSafeEqual } from "node:crypto";
 
 // Gates studio deletion behind a one-time code sent to the OWNER's own
-// email (and Telegram, if linked) — proof a human with access to those
-// actually approved this specific deletion, not just that the browser
-// session is authenticated. Stateless like invite-verification.ts: the
-// code's hash and the studio it authorizes travel inside the signed
-// challenge itself, so there's no DB row to add or expire.
+// email — proof a human with inbox access actually approved this specific
+// deletion, not just that the browser session is authenticated. When the
+// owner also has Telegram linked, a SECOND, independent code goes there and
+// both are required — a compromised inbox alone can no longer delete a
+// studio. Stateless like invite-verification.ts: the code hashes and the
+// studio they authorize travel inside the signed challenge itself, so
+// there's no DB row to add or expire.
 type ChallengePayload = {
   requesterId: string;
   studioId: string;
   codeHash: string;
+  telegramCodeHash: string | null;
   iat: number;
 };
 
@@ -47,12 +50,14 @@ export function createDeleteChallenge(params: {
   requesterId: string;
   studioId: string;
   code: string;
+  telegramCode: string | null;
 }): string {
   const payload: ChallengePayload = {
     codeHash: hashCode(params.code),
     iat: Date.now(),
     requesterId: params.requesterId,
     studioId: params.studioId,
+    telegramCodeHash: params.telegramCode ? hashCode(params.telegramCode) : null,
   };
   const body = base64url(JSON.stringify(payload));
   return `${body}.${sign(body)}`;
@@ -61,6 +66,7 @@ export function createDeleteChallenge(params: {
 export function verifyDeleteChallenge(params: {
   challenge: string;
   code: string;
+  telegramCode?: string;
   requesterId: string;
   studioId: string;
 }): boolean {
@@ -77,6 +83,14 @@ export function verifyDeleteChallenge(params: {
 
   if (Date.now() - payload.iat > EXPIRY_MS) return false;
   if (payload.requesterId !== params.requesterId || payload.studioId !== params.studioId) return false;
+  if (!timingSafeStringsEqual(hashCode(params.code), payload.codeHash)) return false;
 
-  return timingSafeStringsEqual(hashCode(params.code), payload.codeHash);
+  // A Telegram code was issued alongside the email one — both are required,
+  // not either/or.
+  if (payload.telegramCodeHash) {
+    if (!params.telegramCode) return false;
+    if (!timingSafeStringsEqual(hashCode(params.telegramCode), payload.telegramCodeHash)) return false;
+  }
+
+  return true;
 }

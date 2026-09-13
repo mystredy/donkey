@@ -136,6 +136,7 @@ const deleteSchema = z
   .object({
     challenge: z.string().min(1),
     code: z.string().min(1),
+    telegramCode: z.string().min(1).optional(),
   })
   .strict();
 
@@ -161,6 +162,7 @@ export const DELETE = withDepCutAuth(async (request: DepCutAuthenticatedRequest,
     code: parsed.data.code,
     requesterId: request.depcut.userId,
     studioId: id,
+    telegramCode: parsed.data.telegramCode,
   });
   if (!verified) {
     return NextResponse.json(
