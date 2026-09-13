@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Camera, Check, EllipsisVertical, Link2, Pencil, Play, Plus, Video, X } from "lucide-react";
+import { Camera, Check, EllipsisVertical, Link2, Pencil, Play, Plus, Trash2, Video, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import {
   studioBackgroundUrl,
   useRemoveStudioAvatar,
   useRemoveStudioBackground,
+  useRemoveStudioDrop,
   useStudioByUsername,
   useStudioDrops,
   useUpdateStudio,
@@ -48,6 +49,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
   const [editingUsername, setEditingUsername] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [usernameDraft, setUsernameDraft] = useState("");
+  const [dropMenuOpenId, setDropMenuOpenId] = useState<string | null>(null);
 
   const studioId = data?.studio.id ?? "";
   const update = useUpdateStudio(studioId);
@@ -55,6 +57,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
   const removeAvatar = useRemoveStudioAvatar(studioId);
   const updateBackground = useUpdateStudioBackground(studioId);
   const removeBackground = useRemoveStudioBackground(studioId);
+  const removeDrop = useRemoveStudioDrop(studioId);
 
   const startEditName = () => {
     setNameDraft(data?.studio.name ?? "");
@@ -324,6 +327,33 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
                   drop.status !== "complete" && "pointer-events-none opacity-60"
                 )}
               >
+                {isManager && (
+                  <DropdownMenu
+                    open={dropMenuOpenId === drop.id}
+                    onOpenChange={(open) => setDropMenuOpenId(open ? drop.id : null)}
+                  >
+                    <DropdownMenuTrigger
+                      aria-label="Drop actions"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                      className="pointer-events-auto absolute right-1.5 top-1.5 z-10 grid size-6 place-items-center rounded-full bg-black/60 text-white backdrop-blur transition-colors hover:bg-black/80"
+                    >
+                      <EllipsisVertical className="size-3.5" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        disabled={removeDrop.isPending}
+                        onClick={() => removeDrop.mutate(drop.id)}
+                      >
+                        <Trash2 className="size-3.5" />
+                        Remove
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 {drop.status === "complete" && (
                   <>
                     <video

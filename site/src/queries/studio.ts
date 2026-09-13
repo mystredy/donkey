@@ -332,3 +332,15 @@ export function useStudioDrops(id: string) {
     queryKey: studioDropsQueryKey(id),
   });
 }
+
+export function useRemoveStudioDrop(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dropId: string) =>
+      apiFetch<{ ok: boolean }>(`/api/studios/${id}/drops/${dropId}`, { method: "DELETE" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: studioDropsQueryKey(id) });
+      queryClient.invalidateQueries({ queryKey: studioActivityQueryKey(id) });
+    },
+  });
+}
