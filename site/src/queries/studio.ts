@@ -270,16 +270,6 @@ export function useRevokeStudioInvite(id: string) {
   });
 }
 
-export function useAcceptStudioInvite() {
-  return useMutation({
-    mutationFn: (token: string) =>
-      apiFetch<{ studio: { id: string; name: string; username: string } }>(
-        `/api/studio-invites/${token}/accept`,
-        { method: "POST" },
-      ),
-  });
-}
-
 export type StudioActivityEntry = {
   id: string;
   action: string;
