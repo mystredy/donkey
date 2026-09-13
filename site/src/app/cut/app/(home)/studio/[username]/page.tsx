@@ -262,8 +262,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
           </div>
         ) : (
           <p className="mt-0.5 flex items-center gap-1 text-[13px] text-muted-foreground">
-            @{studio.username} · {studio.spaceType}
-            {studio.showFollowerCount && <> · 0 followers</>}
+            <span>@{studio.username}</span>
             {isManager && editMode && (
               <button
                 type="button"
@@ -274,6 +273,10 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
                 <Pencil className="size-3" />
               </button>
             )}
+            <span>
+              · {studio.spaceType}
+              {studio.showFollowerCount && <> · 0 followers</>}
+            </span>
           </p>
         )}
 
