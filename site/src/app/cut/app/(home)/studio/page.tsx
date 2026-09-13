@@ -6,7 +6,7 @@ import { Plus, Video } from "lucide-react";
 
 import { UserAvatar } from "@/cut/components/UserAvatar";
 import { useCutBase } from "@/cut/lib/nav";
-import { useStudios } from "@/queries/studio";
+import { studioAvatarUrl, useStudios } from "@/queries/studio";
 import { CreateStudioDialog } from "@/cut/components/StudioSwitcher";
 
 // The entry point into Space: no studio is privileged as "yours" by
@@ -58,7 +58,7 @@ export default function StudioHubPage() {
                 href={`${base}/studio/${studio.username}`}
                 className="flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors hover:border-ring hover:bg-muted/40"
               >
-                <UserAvatar name={studio.name} image={null} className="size-11 shrink-0" />
+                <UserAvatar name={studio.name} image={studioAvatarUrl(studio)} className="size-11 shrink-0" />
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{studio.name}</p>
                   <p className="truncate text-xs text-muted-foreground">

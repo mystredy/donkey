@@ -49,7 +49,7 @@ import { cn } from "@/lib/utils";
 import { useAccountProfile, visibleName } from "@/queries/accountProfile";
 import { useAccount, useCreditBalance } from "@/queries/credits";
 import { usePublicSiteSettings } from "@/queries/site";
-import { useStudios } from "@/queries/studio";
+import { studioAvatarUrl, useStudios } from "@/queries/studio";
 
 type CachedNavProfile = { name: string; image: string | null };
 
@@ -223,7 +223,7 @@ export function NavUser() {
               >
                 <UserAvatar
                   name={studios.data!.spaces[0].name}
-                  image={null}
+                  image={studioAvatarUrl(studios.data!.spaces[0])}
                   className="size-5"
                   initialClassName="text-[10px]"
                 />
@@ -258,7 +258,7 @@ export function NavUser() {
                     >
                       <UserAvatar
                         name={studio.name}
-                        image={null}
+                        image={studioAvatarUrl(studio)}
                         className="size-5"
                         initialClassName="text-[10px]"
                       />
