@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { notFoundResponse, withDepCutAuth } from "@/lib/depcut-api-auth";
 import { prisma } from "@/lib/prisma";
+import { notifyTelegram } from "@/lib/telegram/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -25,5 +26,9 @@ export const POST = withDepCutAuth(async (request, context: RouteContext) => {
   const message = parsed.success ? parsed.data.error : "Upload failed";
 
   await prisma.drop.update({ data: { error: message, status: "error" }, where: { id } });
+  void notifyTelegram(
+    "systemError",
+    `🚨 Drop upload failed\nuser: ${request.depcut.userId}\ndrop: ${id}\n${message}`,
+  );
   return NextResponse.json({ ok: true });
 });

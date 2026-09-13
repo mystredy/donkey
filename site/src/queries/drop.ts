@@ -38,9 +38,20 @@ function uploadWithProgress(url: string, file: File, onProgress?: (fraction: num
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress?.(e.loaded / e.total);
     };
-    xhr.onload = () =>
-      xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Upload failed"));
-    xhr.onerror = () => reject(new Error("Upload failed"));
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      // R2 answers a rejected PUT with an XML body naming the real reason
+      // (AccessDenied, SignatureDoesNotMatch, ...) — surface it instead of a
+      // bare "Upload failed" so the next failure is actually diagnosable.
+      const code = /<Code>([^<]+)<\/Code>/.exec(xhr.responseText)?.[1];
+      reject(new Error(`Upload failed (${xhr.status}${code ? ` ${code}` : ""})`));
+    };
+    // onerror fires with no status at all — a request that never got a response
+    // (network drop, or the browser blocking it before it completed, e.g. CORS).
+    xhr.onerror = () => reject(new Error("Upload failed (network error — check CORS if this repeats)"));
     xhr.send(file);
   });
 }
