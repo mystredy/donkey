@@ -129,6 +129,13 @@ export const faviconKey = () => "site-branding/favicon";
 export const appleTouchIconKey = () => "site-branding/apple-touch-icon";
 export const socialShareImageKey = () => "site-branding/social-share-image";
 
+/** A studio's avatar and banner. Fixed key per studio, overwritten in place
+ * on each upload — same scheme as siteLogoKey above, except Studio.avatarImageKey
+ * / backgroundImageKey (not a missing DB row) is what tells a caller whether
+ * one has ever been uploaded. */
+export const studioAvatarKey = (studioId: string) => `studio/${studioId}/avatar`;
+export const studioBackgroundKey = (studioId: string) => `studio/${studioId}/background`;
+
 export function presignPut(key: string, mime: string): Promise<string> {
   return getSignedUrl(
     r2(),

@@ -26,6 +26,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { ImageCropDialog } from "@/cut/components/ImageCropDialog";
+import { UserAvatar } from "@/cut/components/UserAvatar";
 import { useCutBase } from "@/cut/lib/nav";
 import { OAUTH_CAPABLE_PLATFORMS, PUBLISHABLE_PLATFORMS } from "@/lib/marketplace/oauth-providers";
 import { SOCIAL_APP_SEED } from "@/lib/marketplace/social-apps-seed";
@@ -38,12 +40,18 @@ import {
   useStudioMembers,
   useDeleteStudio,
   useDisconnectStudioConnection,
+  useRemoveStudioAvatar,
+  useRemoveStudioBackground,
   useRemoveStudioMember,
   useRequestStudioDeleteCode,
   useRequestStudioInviteCode,
   useRevokeStudioInvite,
   useSendStudioInvite,
   useUpdateStudio,
+  useUpdateStudioAvatar,
+  useUpdateStudioBackground,
+  studioAvatarUrl,
+  studioBackgroundUrl,
   studioConnectionsQueryKey,
 } from "@/queries/studio";
 import {
@@ -164,11 +172,27 @@ function SetupSection({
   studio,
 }: {
   studioId: string;
-  studio: { name: string; username: string; bio: string | null; spaceType: string; showFollowerCount: boolean };
+  studio: {
+    id: string;
+    name: string;
+    username: string;
+    bio: string | null;
+    spaceType: string;
+    showFollowerCount: boolean;
+    avatarImageKey: string | null;
+    backgroundImageKey: string | null;
+    updatedAt: string;
+  };
 }) {
   const update = useUpdateStudio(studioId);
   const del = useDeleteStudio(studioId);
   const requestDeleteCode = useRequestStudioDeleteCode(studioId);
+  const updateAvatar = useUpdateStudioAvatar(studioId);
+  const removeAvatar = useRemoveStudioAvatar(studioId);
+  const updateBackground = useUpdateStudioBackground(studioId);
+  const removeBackground = useRemoveStudioBackground(studioId);
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [editingBackground, setEditingBackground] = useState(false);
   const [name, setName] = useState(studio.name);
   const [username, setUsername] = useState(studio.username);
   const [bio, setBio] = useState(studio.bio ?? "");
@@ -209,8 +233,43 @@ function SetupSection({
   };
 
   return (
+    <>
     <div className="max-w-md space-y-5">
-      <div className="space-y-1.5">
+      <div className="relative">
+        <div className="relative h-28 w-full overflow-hidden rounded-xl bg-muted">
+          {studioBackgroundUrl(studio) && (
+            // eslint-disable-next-line @next/next/no-img-element -- own R2-backed route, not an optimizable remote image
+            <img src={studioBackgroundUrl(studio)!} alt="" className="size-full object-cover" />
+          )}
+          <button
+            type="button"
+            aria-label="Edit background image"
+            onClick={() => setEditingBackground(true)}
+            className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
+          >
+            <Camera className="size-3.5" />
+          </button>
+        </div>
+        <div className="absolute -bottom-6 left-4">
+          <button
+            type="button"
+            aria-label="Edit avatar"
+            onClick={() => setEditingAvatar(true)}
+            className="group relative block"
+          >
+            <UserAvatar
+              name={studio.name}
+              image={studioAvatarUrl(studio)}
+              className="size-14 rounded-full text-lg ring-4 ring-background"
+            />
+            <span className="absolute -right-1 -bottom-1 grid size-5 place-items-center rounded-full bg-background text-muted-foreground ring-1 ring-border">
+              <Camera className="size-3" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-1.5 pt-6">
         <Label className="text-xs">Studio name</Label>
         <Input value={name} onChange={(e) => setName(e.target.value)} />
       </div>
@@ -320,6 +379,29 @@ function SetupSection({
         )}
       </div>
     </div>
+    <ImageCropDialog
+      open={editingAvatar}
+      onOpenChange={setEditingAvatar}
+      title="Studio avatar"
+      aspectClassName="aspect-square"
+      outputWidth={256}
+      outputHeight={256}
+      hasCustomImage={studio.avatarImageKey !== null}
+      onSave={(image) => updateAvatar.mutateAsync(image).then(() => {})}
+      onRemove={() => removeAvatar.mutateAsync().then(() => {})}
+    />
+    <ImageCropDialog
+      open={editingBackground}
+      onOpenChange={setEditingBackground}
+      title="Studio background"
+      aspectClassName="aspect-[3/1]"
+      outputWidth={1200}
+      outputHeight={400}
+      hasCustomImage={studio.backgroundImageKey !== null}
+      onSave={(image) => updateBackground.mutateAsync(image).then(() => {})}
+      onRemove={() => removeBackground.mutateAsync().then(() => {})}
+    />
+    </>
   );
 }
 

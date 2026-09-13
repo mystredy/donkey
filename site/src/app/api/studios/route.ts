@@ -32,6 +32,7 @@ export const GET = withDepCutAuth(async (request: DepCutAuthenticatedRequest) =>
       name: m.studio.name,
       role: m.role,
       spaceType: m.studio.spaceType,
+      updatedAt: m.studio.updatedAt,
       username: m.studio.username,
     })),
   });

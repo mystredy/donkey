@@ -34,6 +34,7 @@ export const GET = withDepCutAuth(async (request: DepCutAuthenticatedRequest, co
       role: membership?.role ?? null,
       showFollowerCount: studio.showFollowerCount,
       spaceType: studio.spaceType,
+      updatedAt: studio.updatedAt,
       username: studio.username,
     },
   });

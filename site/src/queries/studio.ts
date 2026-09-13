@@ -11,6 +11,7 @@ export type StudioSummary = {
   spaceType: string;
   role: "owner" | "manager";
   avatarImageKey: string | null;
+  updatedAt: string;
 };
 
 export type Studio = {
@@ -24,7 +25,25 @@ export type Studio = {
   backgroundImageKey: string | null;
   showFollowerCount: boolean;
   linkedAccounts: Record<string, string>;
+  updatedAt: string;
 };
+
+// Fixed-key R2 objects (see studioAvatarKey/studioBackgroundKey in r2.ts) —
+// the ?v= cache-busts the browser once a new image replaces the old one at
+// the same key.
+export function studioAvatarUrl(studio: { id: string; avatarImageKey: string | null; updatedAt: string }) {
+  return studio.avatarImageKey ? `/api/studios/${studio.id}/avatar?v=${Date.parse(studio.updatedAt)}` : null;
+}
+
+export function studioBackgroundUrl(studio: {
+  id: string;
+  backgroundImageKey: string | null;
+  updatedAt: string;
+}) {
+  return studio.backgroundImageKey
+    ? `/api/studios/${studio.id}/background?v=${Date.parse(studio.updatedAt)}`
+    : null;
+}
 
 export const studiosQueryKey = ["studios"] as const;
 export const studioQueryKey = (idOrUsername: string) => ["studio", idOrUsername] as const;
@@ -86,6 +105,56 @@ export function useUpdateStudio(id: string) {
       // first successful save this session.
       queryClient.invalidateQueries({ queryKey: ["studio"] });
     },
+  });
+}
+
+function invalidateStudio(queryClient: ReturnType<typeof useQueryClient>, id: string) {
+  queryClient.invalidateQueries({ queryKey: studiosQueryKey });
+  queryClient.invalidateQueries({ queryKey: studioActivityQueryKey(id) });
+  // Keyed by username, not id — see useUpdateStudio's own comment on why
+  // this invalidates every ["studio", *] by prefix instead.
+  queryClient.invalidateQueries({ queryKey: ["studio"] });
+}
+
+export function useUpdateStudioAvatar(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (image: Blob) =>
+      apiFetch<{ studio: Studio }>(`/api/studios/${id}/avatar`, {
+        body: image,
+        headers: { "Content-Type": image.type },
+        method: "PUT",
+      }),
+    onSuccess: () => invalidateStudio(queryClient, id),
+  });
+}
+
+export function useRemoveStudioAvatar(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiFetch<{ studio: Studio }>(`/api/studios/${id}/avatar`, { method: "DELETE" }),
+    onSuccess: () => invalidateStudio(queryClient, id),
+  });
+}
+
+export function useUpdateStudioBackground(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (image: Blob) =>
+      apiFetch<{ studio: Studio }>(`/api/studios/${id}/background`, {
+        body: image,
+        headers: { "Content-Type": image.type },
+        method: "PUT",
+      }),
+    onSuccess: () => invalidateStudio(queryClient, id),
+  });
+}
+
+export function useRemoveStudioBackground(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiFetch<{ studio: Studio }>(`/api/studios/${id}/background`, { method: "DELETE" }),
+    onSuccess: () => invalidateStudio(queryClient, id),
   });
 }
 
