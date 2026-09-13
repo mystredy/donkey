@@ -41,6 +41,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
   const drops = useStudioDrops(data?.studio.id ?? "");
   const [posting, setPosting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [editingBackground, setEditingBackground] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -116,14 +117,20 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
         {isManager && (
           <>
             <div className="absolute right-3 top-3 flex items-center gap-2">
-              <Link
-                href={`${base}/studio/${studio.username}/settings`}
-                aria-label="Edit studio"
-                title="Edit studio"
-                className="grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
+              <button
+                type="button"
+                aria-label={editMode ? "Done editing" : "Edit studio"}
+                title={editMode ? "Done editing" : "Edit studio"}
+                onClick={() => setEditMode((v) => !v)}
+                className={cn(
+                  "grid size-8 place-items-center rounded-full backdrop-blur transition-colors",
+                  editMode
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background/80 text-foreground hover:bg-background"
+                )}
               >
                 <Pencil className="size-3.5" />
-              </Link>
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger
                   aria-label="More actions"
@@ -137,18 +144,24 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
                     <Link2 className="size-3.5" />
                     {copied ? "Copied!" : "Copy studio link"}
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push(`${base}/studio/${studio.username}/settings`)}>
+                    <Pencil className="size-3.5" />
+                    Studio settings
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <button
-              type="button"
-              aria-label="Edit background image"
-              title="Edit background image"
-              onClick={() => setEditingBackground(true)}
-              className="absolute bottom-3 right-3 grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
-            >
-              <Camera className="size-3.5" />
-            </button>
+            {editMode && (
+              <button
+                type="button"
+                aria-label="Edit background image"
+                title="Edit background image"
+                onClick={() => setEditingBackground(true)}
+                className="absolute bottom-3 right-3 grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
+              >
+                <Camera className="size-3.5" />
+              </button>
+            )}
           </>
         )}
       </div>
@@ -160,7 +173,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
             image={studioAvatarUrl(studio)}
             className="size-20 rounded-full text-2xl ring-4 ring-primary ring-offset-4 ring-offset-background"
           />
-          {isManager && (
+          {isManager && editMode && (
             <button
               type="button"
               aria-label="Edit avatar"
@@ -205,7 +218,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
         ) : (
           <div className="mt-3 flex items-center gap-1.5">
             <h1 className="text-lg font-semibold tracking-tight">{studio.name}</h1>
-            {isManager && (
+            {isManager && editMode && (
               <button
                 type="button"
                 aria-label="Edit studio name"
@@ -251,7 +264,7 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
           <p className="mt-0.5 flex items-center gap-1 text-[13px] text-muted-foreground">
             @{studio.username} · {studio.spaceType}
             {studio.showFollowerCount && <> · 0 followers</>}
-            {isManager && (
+            {isManager && editMode && (
               <button
                 type="button"
                 aria-label="Edit username"
