@@ -13,6 +13,7 @@ import {
   Loader2,
   MessageCircle,
   MoreVertical,
+  Plus,
   Send,
   Share2,
   Video,
@@ -743,6 +744,7 @@ function RepurposeSection({ studioId }: { studioId: string }) {
   const connections = useStudioConnections(studioId);
   const disconnect = useDisconnectStudioConnection(studioId);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+  const [showConnectOptions, setShowConnectOptions] = useState(false);
   const queryClient = useQueryClient();
 
   // The OAuth popup posts this back once a real connection is saved
@@ -830,29 +832,42 @@ function RepurposeSection({ studioId }: { studioId: string }) {
       </div>
 
       <div>
-        <p className="text-sm font-semibold">Connect a new account</p>
-        <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          {SOCIAL_APP_SEED.filter((s) => OAUTH_CAPABLE_PLATFORMS.includes(s.platform)).map((s) => {
-            const Icon = PLATFORM_ICONS[s.platform] ?? Link2;
-            const canPublish = PUBLISHABLE_PLATFORMS.includes(s.platform);
-            return (
-              <button
-                key={s.platform}
-                type="button"
-                onClick={() => connect(s.platform)}
-                className="flex items-center gap-2.5 rounded-xl border p-3 text-left transition-colors hover:border-ring hover:bg-muted/40"
-              >
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
-                  <Icon className="size-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{s.label}</p>
-                  <p className="text-[11px] text-muted-foreground">{canPublish ? "Publish" : "Connect"}</p>
-                </div>
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold">Connect a new account</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowConnectOptions((v) => !v)}
+          >
+            <Plus className="size-3.5" />
+            Add account
+          </Button>
         </div>
+        {showConnectOptions && (
+          <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+            {SOCIAL_APP_SEED.filter((s) => OAUTH_CAPABLE_PLATFORMS.includes(s.platform)).map((s) => {
+              const Icon = PLATFORM_ICONS[s.platform] ?? Link2;
+              const canPublish = PUBLISHABLE_PLATFORMS.includes(s.platform);
+              return (
+                <button
+                  key={s.platform}
+                  type="button"
+                  onClick={() => connect(s.platform)}
+                  className="flex items-center gap-2.5 rounded-xl border p-3 text-left transition-colors hover:border-ring hover:bg-muted/40"
+                >
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
+                    <Icon className="size-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{s.label}</p>
+                    <p className="text-[11px] text-muted-foreground">{canPublish ? "Publish" : "Connect"}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
