@@ -22,7 +22,7 @@ export async function sendStudioInviteCode(params: {
   const { error } = await getResend().emails.send({
     from,
     to: params.requesterEmail,
-    subject: `Your code: ${params.code}`,
+    subject: `Confirm inviting a manager to "${params.studioName}"`,
     react: StudioInviteCodeEmail({
       code: params.code,
       inviteEmail: params.inviteEmail,
