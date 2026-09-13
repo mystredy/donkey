@@ -771,7 +771,18 @@ function RepurposeSection({ studioId }: { studioId: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold">Connected accounts</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold">Connected accounts</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowConnectOptions((v) => !v)}
+          >
+            <Plus className="size-3.5" />
+            Add account
+          </Button>
+        </div>
         {(connections.data?.connections ?? []).length === 0 ? (
           <div className="mt-3 flex flex-col items-center gap-1.5 rounded-2xl border border-dashed p-8 text-center">
             <Link2 className="mb-1 size-5 text-muted-foreground" />
@@ -831,20 +842,9 @@ function RepurposeSection({ studioId }: { studioId: string }) {
         )}
       </div>
 
-      <div>
-        <div className="flex items-center justify-between">
+      {showConnectOptions && (
+        <div>
           <p className="text-sm font-semibold">Connect a new account</p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowConnectOptions((v) => !v)}
-          >
-            <Plus className="size-3.5" />
-            Add account
-          </Button>
-        </div>
-        {showConnectOptions && (
           <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {SOCIAL_APP_SEED.filter((s) => OAUTH_CAPABLE_PLATFORMS.includes(s.platform)).map((s) => {
               const Icon = PLATFORM_ICONS[s.platform] ?? Link2;
@@ -867,8 +867,8 @@ function RepurposeSection({ studioId }: { studioId: string }) {
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
