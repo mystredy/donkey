@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "drop"
+ADD COLUMN "title" TEXT,
+ADD COLUMN "hashtags" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];

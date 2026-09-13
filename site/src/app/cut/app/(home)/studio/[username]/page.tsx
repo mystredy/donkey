@@ -378,8 +378,15 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
                   </>
                 )}
                 <p className="relative truncate text-[11px] font-medium text-foreground">
-                  {drop.status === "uploading" ? "Uploading…" : drop.caption || drop.fileName || "Untitled"}
+                  {drop.status === "uploading"
+                    ? "Uploading…"
+                    : drop.title || drop.caption || drop.fileName || "Untitled"}
                 </p>
+                {drop.hashtags.length > 0 && (
+                  <p className="relative truncate text-[10px] text-muted-foreground">
+                    {drop.hashtags.map((t) => `#${t}`).join(" ")}
+                  </p>
+                )}
                 {drop.sizeBytes != null && (
                   <p className="relative text-[10px] text-muted-foreground">{formatBytes(drop.sizeBytes)}</p>
                 )}

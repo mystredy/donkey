@@ -317,7 +317,9 @@ export function useDisconnectStudioConnection(id: string) {
 
 export type StudioDrop = {
   id: string;
+  title: string | null;
   caption: string | null;
+  hashtags: string[];
   createdAt: string;
   error: string | null;
   fileName: string | null;

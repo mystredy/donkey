@@ -23,7 +23,14 @@ model Drop {
   studioId     String
   studio       Studio   @relation(fields: [studioId], references: [id], onDelete: Cascade)
   projectId    String?
+  // Short headline shown above the description, same role as a YouTube
+  // Short's title. Optional — a caption-only drop is still a valid post.
+  title        String?
   caption      String?
+  // Free-form keywords the author typed in, stored without their leading
+  // "#" (added back for display) so a search can match "dance" whether the
+  // author wrote "#dance" or "dance".
+  hashtags     String[] @default([])
   // Original picked filename, kept as a label.
   fileName     String?
   // R2 object keys — see src/cut/server/cloud/r2.ts's spacePostVideoKey /

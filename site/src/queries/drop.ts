@@ -18,7 +18,13 @@ export function useSpaceUsage() {
 
 export function useCreateDrop() {
   return useMutation({
-    mutationFn: (input: { caption?: string; projectId?: string | null; studioId: string }) =>
+    mutationFn: (input: {
+      title?: string;
+      caption?: string;
+      hashtags?: string;
+      projectId?: string | null;
+      studioId: string;
+    }) =>
       apiFetch<{ drop: { id: string } }>("/api/drops", {
         body: JSON.stringify(input),
         method: "POST",

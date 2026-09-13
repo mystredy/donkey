@@ -31,7 +31,9 @@ export function DropDialog({
   onClose: () => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const [title, setTitle] = useState("");
   const [caption, setCaption] = useState("");
+  const [hashtags, setHashtags] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [posting, setPosting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -59,7 +61,9 @@ export function DropDialog({
     setError(null);
     try {
       const { drop: created } = await createDrop.mutateAsync({
+        title: title.trim() || undefined,
         caption: caption.trim() || undefined,
+        hashtags: hashtags.trim() || undefined,
         projectId,
         studioId,
       });
@@ -121,13 +125,29 @@ export function DropDialog({
               />
             </label>
 
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title (optional)"
+              maxLength={100}
+              className="w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring"
+            />
+
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              placeholder="Add a caption (optional)"
+              placeholder="Description (optional)"
               maxLength={280}
               rows={2}
               className="w-full resize-none rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring"
+            />
+
+            <input
+              value={hashtags}
+              onChange={(e) => setHashtags(e.target.value)}
+              placeholder="Hashtags, space or comma separated (optional)"
+              maxLength={280}
+              className="w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring"
             />
 
             <p className="text-[11px] text-muted-foreground">

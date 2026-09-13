@@ -21,10 +21,12 @@ export const GET = withDepCutAuth(async (_request, context: RouteContext) => {
       createdAt: true,
       error: true,
       fileName: true,
+      hashtags: true,
       id: true,
       sizeBytes: true,
       status: true,
       thumbnailKey: true,
+      title: true,
     },
     where: { studioId: id },
   });
