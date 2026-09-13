@@ -2,7 +2,8 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
-import { EllipsisVertical, Link2, Pencil, Play, Plus, Video } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Camera, Check, EllipsisVertical, Link2, Pencil, Play, Plus, Video, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,24 +12,75 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { DropDialog } from "@/cut/components/DropDialog";
+import { ImageCropDialog } from "@/cut/components/ImageCropDialog";
 import { UserAvatar } from "@/cut/components/UserAvatar";
 import { formatBytes } from "@/cut/components/desktopFolders";
 import { useCutBase } from "@/cut/lib/nav";
 import { cn } from "@/lib/utils";
-import { useStudioByUsername, useStudioDrops } from "@/queries/studio";
+import {
+  studioAvatarUrl,
+  studioBackgroundUrl,
+  useRemoveStudioAvatar,
+  useRemoveStudioBackground,
+  useStudioByUsername,
+  useStudioDrops,
+  useUpdateStudio,
+  useUpdateStudioAvatar,
+  useUpdateStudioBackground,
+} from "@/queries/studio";
 
 // A studio's public profile — avatar, bio, drops grid — plus edit/manage
-// entry points for whoever runs it. No avatar/background image upload yet
-// (Studio.avatarImageKey stays null until that's built) — UserAvatar's
-// initial-letter fallback covers it in the meantime.
+// entry points for whoever runs it.
 export default function StudioPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = use(params);
   const base = useCutBase();
+  const router = useRouter();
   const { data, isLoading } = useStudioByUsername(username);
   const drops = useStudioDrops(data?.studio.id ?? "");
   const [posting, setPosting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [editingBackground, setEditingBackground] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [usernameDraft, setUsernameDraft] = useState("");
+
+  const studioId = data?.studio.id ?? "";
+  const update = useUpdateStudio(studioId);
+  const updateAvatar = useUpdateStudioAvatar(studioId);
+  const removeAvatar = useRemoveStudioAvatar(studioId);
+  const updateBackground = useUpdateStudioBackground(studioId);
+  const removeBackground = useRemoveStudioBackground(studioId);
+
+  const startEditName = () => {
+    setNameDraft(data?.studio.name ?? "");
+    setEditingName(true);
+  };
+  const saveName = () => {
+    const value = nameDraft.trim();
+    if (!value) return;
+    update.mutate({ name: value }, { onSuccess: () => setEditingName(false) });
+  };
+  const startEditUsername = () => {
+    setUsernameDraft(data?.studio.username ?? "");
+    setEditingUsername(true);
+  };
+  const saveUsername = () => {
+    const value = usernameDraft.trim().toLowerCase();
+    if (!value) return;
+    update.mutate(
+      { username: value },
+      {
+        onSuccess: () => {
+          setEditingUsername(false);
+          router.replace(`${base}/studio/${value}`);
+        },
+      },
+    );
+  };
 
   const copyLink = async () => {
     try {
@@ -57,46 +109,160 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
   return (
     <div className="pb-24">
       <div className="relative h-32 w-full overflow-hidden rounded-b-2xl bg-muted sm:h-40">
+        {studioBackgroundUrl(studio) && (
+          // eslint-disable-next-line @next/next/no-img-element -- own R2-backed route, not an optimizable remote image
+          <img src={studioBackgroundUrl(studio)!} alt="" className="size-full object-cover" />
+        )}
         {isManager && (
-          <div className="absolute right-3 top-3 flex items-center gap-2">
-            <Link
-              href={`${base}/studio/${studio.username}/settings`}
-              aria-label="Edit studio"
-              title="Edit studio"
-              className="grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
-            >
-              <Pencil className="size-3.5" />
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label="More actions"
-                title="More actions"
+          <>
+            <div className="absolute right-3 top-3 flex items-center gap-2">
+              <Link
+                href={`${base}/studio/${studio.username}/settings`}
+                aria-label="Edit studio"
+                title="Edit studio"
                 className="grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
               >
-                <EllipsisVertical className="size-3.5" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => void copyLink()}>
-                  <Link2 className="size-3.5" />
-                  {copied ? "Copied!" : "Copy studio link"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                <Pencil className="size-3.5" />
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="More actions"
+                  title="More actions"
+                  className="grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
+                >
+                  <EllipsisVertical className="size-3.5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => void copyLink()}>
+                    <Link2 className="size-3.5" />
+                    {copied ? "Copied!" : "Copy studio link"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <button
+              type="button"
+              aria-label="Edit background image"
+              title="Edit background image"
+              onClick={() => setEditingBackground(true)}
+              className="absolute bottom-3 right-3 grid size-8 place-items-center rounded-full bg-background/80 text-foreground backdrop-blur transition-colors hover:bg-background"
+            >
+              <Camera className="size-3.5" />
+            </button>
+          </>
         )}
       </div>
 
       <div className="mx-auto flex max-w-2xl flex-col items-center px-6 text-center">
-        <UserAvatar
-          name={studio.name}
-          image={null}
-          className="-mt-10 size-20 rounded-full text-2xl ring-4 ring-primary ring-offset-4 ring-offset-background"
-        />
-        <h1 className="mt-3 text-lg font-semibold tracking-tight">{studio.name}</h1>
-        <p className="mt-0.5 text-[13px] text-muted-foreground">
-          @{studio.username} · {studio.spaceType}
-          {studio.showFollowerCount && <> · 0 followers</>}
-        </p>
+        <div className="relative -mt-10">
+          <UserAvatar
+            name={studio.name}
+            image={studioAvatarUrl(studio)}
+            className="size-20 rounded-full text-2xl ring-4 ring-primary ring-offset-4 ring-offset-background"
+          />
+          {isManager && (
+            <button
+              type="button"
+              aria-label="Edit avatar"
+              title="Edit avatar"
+              onClick={() => setEditingAvatar(true)}
+              className="absolute -right-1 bottom-1 grid size-6 place-items-center rounded-full bg-background text-muted-foreground ring-1 ring-border hover:text-foreground"
+            >
+              <Camera className="size-3" />
+            </button>
+          )}
+        </div>
+
+        {editingName ? (
+          <div className="mt-3 flex items-center gap-1.5">
+            <Input
+              autoFocus
+              className="h-8 max-w-[220px] text-center"
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveName();
+                if (e.key === "Escape") setEditingName(false);
+              }}
+            />
+            <button
+              type="button"
+              aria-label="Save name"
+              onClick={saveName}
+              className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Check className="size-3.5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Cancel"
+              onClick={() => setEditingName(false)}
+              className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="mt-3 flex items-center gap-1.5">
+            <h1 className="text-lg font-semibold tracking-tight">{studio.name}</h1>
+            {isManager && (
+              <button
+                type="button"
+                aria-label="Edit studio name"
+                onClick={startEditName}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Pencil className="size-3" />
+              </button>
+            )}
+          </div>
+        )}
+
+        {editingUsername ? (
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <Input
+              autoFocus
+              className="h-7 max-w-[180px] text-center text-[13px]"
+              value={usernameDraft}
+              onChange={(e) => setUsernameDraft(e.target.value.toLowerCase())}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveUsername();
+                if (e.key === "Escape") setEditingUsername(false);
+              }}
+            />
+            <button
+              type="button"
+              aria-label="Save username"
+              onClick={saveUsername}
+              className="grid size-5 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Check className="size-3" />
+            </button>
+            <button
+              type="button"
+              aria-label="Cancel"
+              onClick={() => setEditingUsername(false)}
+              className="grid size-5 place-items-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        ) : (
+          <p className="mt-0.5 flex items-center gap-1 text-[13px] text-muted-foreground">
+            @{studio.username} · {studio.spaceType}
+            {studio.showFollowerCount && <> · 0 followers</>}
+            {isManager && (
+              <button
+                type="button"
+                aria-label="Edit username"
+                onClick={startEditUsername}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Pencil className="size-3" />
+              </button>
+            )}
+          </p>
+        )}
 
         {studio.bio && <p className="mt-3 max-w-sm text-sm text-foreground/90">{studio.bio}</p>}
 
@@ -189,6 +355,29 @@ export default function StudioPage({ params }: { params: Promise<{ username: str
       )}
 
       {posting && <DropDialog projectId={null} studioId={studio.id} onClose={() => setPosting(false)} />}
+
+      <ImageCropDialog
+        open={editingAvatar}
+        onOpenChange={setEditingAvatar}
+        title="Studio avatar"
+        aspectClassName="aspect-square"
+        outputWidth={256}
+        outputHeight={256}
+        hasCustomImage={studio.avatarImageKey !== null}
+        onSave={(image) => updateAvatar.mutateAsync(image).then(() => {})}
+        onRemove={() => removeAvatar.mutateAsync().then(() => {})}
+      />
+      <ImageCropDialog
+        open={editingBackground}
+        onOpenChange={setEditingBackground}
+        title="Studio background"
+        aspectClassName="aspect-[3/1]"
+        outputWidth={1200}
+        outputHeight={400}
+        hasCustomImage={studio.backgroundImageKey !== null}
+        onSave={(image) => updateBackground.mutateAsync(image).then(() => {})}
+        onRemove={() => removeBackground.mutateAsync().then(() => {})}
+      />
     </div>
   );
 }
