@@ -842,10 +842,12 @@ function RepurposeSection({ studioId }: { studioId: string }) {
         )}
       </div>
 
-      {showConnectOptions && (
-        <div>
-          <p className="text-sm font-semibold">Connect a new account</p>
-          <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+      <Dialog open={showConnectOptions} onOpenChange={setShowConnectOptions}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Connect a new account</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-2.5">
             {SOCIAL_APP_SEED.filter((s) => OAUTH_CAPABLE_PLATFORMS.includes(s.platform)).map((s) => {
               const Icon = PLATFORM_ICONS[s.platform] ?? Link2;
               const canPublish = PUBLISHABLE_PLATFORMS.includes(s.platform);
@@ -853,7 +855,10 @@ function RepurposeSection({ studioId }: { studioId: string }) {
                 <button
                   key={s.platform}
                   type="button"
-                  onClick={() => connect(s.platform)}
+                  onClick={() => {
+                    connect(s.platform);
+                    setShowConnectOptions(false);
+                  }}
                   className="flex items-center gap-2.5 rounded-xl border p-3 text-left transition-colors hover:border-ring hover:bg-muted/40"
                 >
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted">
@@ -867,8 +872,8 @@ function RepurposeSection({ studioId }: { studioId: string }) {
               );
             })}
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
