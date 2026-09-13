@@ -10,7 +10,6 @@ import {
   Copy,
   Eye,
   EyeOff,
-  Film,
   Ghost,
   Hash,
   HelpCircle,
@@ -51,7 +50,6 @@ const PLATFORM_ICONS: Record<string, LucideIcon> = {
   tiktok: Share2,
   x: Hash,
   youtube: Video,
-  youtube_shorts: Film,
 };
 
 // The Telegram bot has its own dedicated pages at /admin/telegram-bot/* —

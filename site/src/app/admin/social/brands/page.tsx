@@ -5,7 +5,6 @@ import { useRef, useState } from "react";
 import {
   AtSign,
   Camera,
-  Film,
   Ghost,
   Hash,
   ImageUp,
@@ -87,7 +86,6 @@ const PLATFORM_ICONS: Record<string, LucideIcon> = {
   tiktok: Share2,
   x: Hash,
   youtube: Video,
-  youtube_shorts: Film,
 };
 
 // Groups linked SocialConnections under a named brand. Posting one update

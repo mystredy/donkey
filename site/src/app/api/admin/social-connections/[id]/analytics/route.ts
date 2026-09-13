@@ -15,9 +15,8 @@ export const dynamic = "force-dynamic";
 type RouteContext = { params: Promise<{ id: string }> };
 
 // Super-user only. Channel-level daily stats (views, watch time, likes,
-// subscribers gained) for a connected YouTube / YouTube Shorts account —
-// yt-analytics.readonly, not per-video, since a connection isn't tied to a
-// specific upload.
+// subscribers gained) for a connected YouTube account — yt-analytics.readonly,
+// not per-video, since a connection isn't tied to a specific upload.
 export const GET = withDepCutAuth(async (request, context: RouteContext) => {
   if (!(await isDepCutSuperUser(request.depcut.userId))) {
     return NextResponse.json(

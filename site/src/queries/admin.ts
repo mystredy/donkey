@@ -1709,8 +1709,8 @@ export function useDeleteSocialConnection() {
   });
 }
 
-// Manually publishes to a connected YouTube / YouTube Shorts destination —
-// see /api/admin/social-connections/[id]/publish. videoUrl must already be
+// Manually publishes to a connected YouTube destination — see
+// /api/admin/social-connections/[id]/publish. videoUrl must already be
 // reachable (an R2 object, or any hosted file); there's no upload-from-disk
 // path yet, since Vercel's request body limit rules out routing a large
 // file straight through this endpoint.

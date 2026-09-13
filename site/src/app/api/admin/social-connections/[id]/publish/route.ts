@@ -141,7 +141,7 @@ export const POST = withDepCutAuth(async (request, context: RouteContext) => {
       return NextResponse.json({ published });
     }
 
-    if (connection.platform === "youtube" || connection.platform === "youtube_shorts") {
+    if (connection.platform === "youtube") {
       if (!videoUrl) {
         return NextResponse.json(
           { error: "Invalid request", message: "videoUrl is required for YouTube." },

@@ -1,9 +1,8 @@
 // Real YouTube Data/Analytics API calls for a connected SocialConnection
-// (youtube or youtube_shorts platform) — video publish and channel
-// analytics. Used by /api/admin/social-connections/[id]/publish and
-// .../analytics, triggered manually from /admin/social/connections. Token
-// refresh is shared with every other standard-OAuth2 platform — see
-// oauth-token-refresh.ts.
+// (youtube platform) — video publish and channel analytics. Used by
+// /api/admin/social-connections/[id]/publish and .../analytics, triggered
+// manually from /admin/social/connections. Token refresh is shared with
+// every other standard-OAuth2 platform — see oauth-token-refresh.ts.
 export class YoutubeApiError extends Error {}
 
 // Fetches the video from videoUrl and re-uploads it to YouTube via the

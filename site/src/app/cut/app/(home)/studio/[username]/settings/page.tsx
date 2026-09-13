@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   AtSign,
   Camera,
-  Film,
   Ghost,
   Hash,
   Link2,
@@ -73,7 +72,6 @@ const PLATFORM_ICONS: Record<string, LucideIcon> = {
   tiktok: Share2,
   x: Hash,
   youtube: Video,
-  youtube_shorts: Film,
 };
 
 const LINKED_ACCOUNT_PLATFORMS = ["facebook", "instagram", "x", "tiktok", "youtube", "threads", "snapchat"];

@@ -7,7 +7,6 @@ import {
   Camera,
   Ghost,
   Hash,
-  Film,
   Link2,
   Loader2,
   MessageCircle,
@@ -68,7 +67,6 @@ const PLATFORM_ICONS: Record<string, LucideIcon> = {
   tiktok: Share2,
   x: Hash,
   youtube: Video,
-  youtube_shorts: Film,
 };
 
 type Filter = "all" | "source" | "destination" | "inactive";

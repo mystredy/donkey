@@ -190,24 +190,6 @@ export const SOCIAL_APP_SEED: SocialAppSpec[] = [
     ],
   },
   {
-    platform: "youtube_shorts",
-    label: "YouTube Shorts",
-    description: "Separate OAuth 2.0 Client ID and Client Secret specific to Shorts.",
-    fields: [
-      { key: "clientId", label: "Client ID", type: "text" },
-      { key: "clientSecret", label: "Client Secret", type: "password" },
-    ],
-    callbackPath: "/api/admin/oauth/youtube_shorts/callback",
-    callbackEnvVar: "YOUTUBE_SHORTS_CALLBACK_URL",
-    helpSteps: [
-      "Go to Google Cloud Console",
-      "Create a second OAuth Client ID dedicated to Shorts",
-      "Configure the OAuth consent screen if not already done",
-      "Add the Callback URL as an Authorized redirect URI",
-      "Copy Client ID and Client Secret",
-    ],
-  },
-  {
     // The bot itself — token, derived identity, notification routing. Lives
     // on its own dedicated pages (/admin/telegram-bot/*), not the generic
     // OAuth App page, since it isn't an OAuth app. Telegram Login (verified
@@ -267,10 +249,6 @@ export const SOCIAL_APP_ENV_VARS: Partial<Record<string, Partial<Record<string, 
   tiktok: { appId: "TIKTOK_API_KEY", appSecret: "TIKTOK_API_SECRET" },
   x: { clientId: "X_API_KEY", clientSecret: "X_API_SECRET" },
   youtube: { clientId: "YOUTUBE_API_KEY", clientSecret: "YOUTUBE_API_SECRET" },
-  youtube_shorts: {
-    clientId: "YOUTUBE_SHORTS_API_KEY",
-    clientSecret: "YOUTUBE_SHORTS_API_SECRET",
-  },
 };
 
 // Groups a field explicitly marked pairWithNext onto one shared row with

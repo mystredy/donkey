@@ -177,32 +177,6 @@ export const OAUTH_PROVIDERS: Record<string, OAuthProviderConfig> = {
     tokenUrl: "https://oauth2.googleapis.com/token",
     usesPkce: false,
   },
-  youtube_shorts: {
-    authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    clientIdField: "clientId",
-    clientSecretField: "clientSecret",
-    extraAuthorizeParams: { access_type: "offline", prompt: "consent" },
-    fetchProfile: async (accessToken) => {
-      const res = await fetch(
-        "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      const data = await safeJson(res);
-      const channel = data?.items?.[0];
-      return {
-        accountHandle: channel?.snippet?.customUrl,
-        accountName: channel?.snippet?.title ?? "YouTube Shorts Channel",
-        platformAccountId: channel?.id,
-        profileImage: channel?.snippet?.thumbnails?.default?.url,
-      };
-    },
-    platform: "youtube_shorts",
-    scope:
-      "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/yt-analytics.readonly",
-    tokenAuthStyle: "form_post",
-    tokenUrl: "https://oauth2.googleapis.com/token",
-    usesPkce: false,
-  },
 };
 
 export function getOAuthProvider(platform: string): OAuthProviderConfig | null {
@@ -217,17 +191,9 @@ export const OAUTH_CAPABLE_PLATFORMS = Object.keys(OAUTH_PROVIDERS);
 // src/lib/marketplace/youtube-api.ts) — split out from that file, which
 // pulls in the Prisma client, so client components can read this list
 // without bundling server-only code.
-export const YOUTUBE_PLATFORMS = ["youtube", "youtube_shorts"];
+export const YOUTUBE_PLATFORMS = ["youtube"];
 
 // Platforms with a real "Post video" publish path today (see
 // /api/admin/social-connections/[id]/publish). Snapchat has no public API
 // for posting to a connected account at all.
-export const PUBLISHABLE_PLATFORMS = [
-  "youtube",
-  "youtube_shorts",
-  "tiktok",
-  "x",
-  "facebook",
-  "instagram",
-  "threads",
-];
+export const PUBLISHABLE_PLATFORMS = ["youtube", "tiktok", "x", "facebook", "instagram", "threads"];
